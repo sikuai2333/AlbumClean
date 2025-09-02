@@ -29,10 +29,19 @@ fun AppNavGraph(startDestination: String) {
                 }
             })
         }
-        composable(Routes.HOME) { HomeScreen(navController) }
-        composable(Routes.MY) { MyScreen(navController) }
-        composable(Routes.PREVIEW) { PreviewScreen(navController) }
-        composable(Routes.CONFIRM) { ConfirmScreen(navController) }
-        composable(Routes.GUIDE) { GuideScreen(navController) }
+        composable(Routes.HOME) { HomeScreen(navController = navController) }
+        composable(Routes.MY) { MyScreen(navController = navController) }
+        composable(Routes.PREVIEW) { PreviewScreen(navController = navController) }
+        composable(Routes.CONFIRM) { ConfirmScreen(navController = navController) }
+        composable(Routes.GUIDE) {
+            GuideScreen(
+                onGuideFinished = {
+                    navController.navigate(Routes.HOME) {
+                        popUpTo(Routes.GUIDE) { inclusive = true }
+                    }
+                },
+            )
+        }
+
     }
 }
