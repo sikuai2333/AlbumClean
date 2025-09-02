@@ -1,4 +1,4 @@
-package com.example.albumclean.ui.theme
+package com.sikuai.album.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
