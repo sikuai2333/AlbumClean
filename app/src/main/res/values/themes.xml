@@ -1,5 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
-    <style name="Theme.AlbumClean" parent="android:Theme.Material.Light.NoActionBar" />
+    <!--
+        Base application theme.
+        This theme is used by the Android system for system UI,
+        and as the base for the Compose theme.
+    -->
+    <style name="Theme.AlbumManager" parent="Theme.Material3.DayNight.NoActionBar">
+        <!--
+          Used by the Android system for the window background behind the splash screen.
+        -->
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <!--
+          Required for edge-to-edge display.
+        -->
+        <item name="android:windowIsTranslucent">true</item>
+    </style>
 </resources>
