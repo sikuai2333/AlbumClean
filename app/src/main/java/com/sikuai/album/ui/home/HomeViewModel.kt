@@ -17,30 +17,31 @@ data class HomeUiState(
 )
 
 @HiltViewModel
-class HomeViewModel @Inject constructor(
-    private val photoRepository: PhotoRepository
-) : ViewModel() {
+class HomeViewModel
+    @Inject
+    constructor(
+        private val photoRepository: PhotoRepository,
+    ) : ViewModel() {
+        private val _uiState = MutableStateFlow(HomeUiState())
+        val uiState = _uiState.asStateFlow()
 
-    private val _uiState = MutableStateFlow(HomeUiState())
-    val uiState = _uiState.asStateFlow()
+        init {
+            // Observe photo changes from the local database
+            viewModelScope.launch {
+                photoRepository.getAllPhotos().collect { photos ->
+                    _uiState.update { it.copy(photos = photos) }
+                }
+            }
+        }
 
-    init {
-        // Observe photo changes from the local database
-        viewModelScope.launch {
-            photoRepository.getAllPhotos().collect { photos ->
-                _uiState.update { it.copy(photos = photos) }
+        fun syncWithMediaStore() {
+            viewModelScope.launch {
+                _uiState.update { it.copy(isLoading = true) }
+                try {
+                    photoRepository.syncWithMediaStore()
+                } finally {
+                    _uiState.update { it.copy(isLoading = false) }
+                }
             }
         }
     }
-
-    fun syncWithMediaStore() {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-            try {
-                photoRepository.syncWithMediaStore()
-            } finally {
-                _uiState.update { it.copy(isLoading = false) }
-            }
-        }
-    }
-}

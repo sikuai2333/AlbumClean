@@ -11,7 +11,6 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -20,8 +19,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -39,7 +36,7 @@ import kotlin.math.roundToInt
 @Composable
 fun PreviewScreen(
     navController: NavController,
-    viewModel: PreviewViewModel = hiltViewModel()
+    viewModel: PreviewViewModel = hiltViewModel(),
 ) {
     val systemUiController = rememberSystemUiController()
     DisposableEffect(systemUiController) {
@@ -62,14 +59,14 @@ fun PreviewScreen(
 
     HorizontalPager(
         state = pagerState,
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
     ) { pageIndex ->
         val photo = uiState.currentGroup[pageIndex]
         if (photo.uri !in uiState.processedPhotos) {
             SwipablePhoto(
                 photo = photo,
                 onSwipeUp = { viewModel.onPhotoKept(photo) },
-                onSwipeDown = { viewModel.onPhotoDeleted(photo) }
+                onSwipeDown = { viewModel.onPhotoDeleted(photo) },
             )
         }
     }
@@ -79,49 +76,51 @@ fun PreviewScreen(
 private fun SwipablePhoto(
     photo: PhotoEntity,
     onSwipeUp: () -> Unit,
-    onSwipeDown: () -> Unit
+    onSwipeDown: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val offsetY = remember { Animatable(0f) }
     var hasSwiped by remember { mutableStateOf(false) }
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .offset { IntOffset(0, offsetY.value.roundToInt()) }
-            .pointerInput(Unit) {
-                detectDragGestures(
-                    onDragEnd = {
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .offset { IntOffset(0, offsetY.value.roundToInt()) }
+                .pointerInput(Unit) {
+                    detectDragGestures(
+                        onDragEnd = {
+                            scope.launch {
+                                // Animate back to center if not swiped far enough
+                                if (offsetY.value > -200 && offsetY.value < 200) {
+                                    offsetY.animateTo(0f, tween(300))
+                                }
+                            }
+                        },
+                    ) { change, dragAmount ->
+                        change.consume()
                         scope.launch {
-                            // Animate back to center if not swiped far enough
-                            if (offsetY.value > -200 && offsetY.value < 200) {
-                                offsetY.animateTo(0f, tween(300))
+                            offsetY.snapTo(offsetY.value + dragAmount.y)
+                            if (offsetY.value < -400 && !hasSwiped) { // Swipe Up (Keep)
+                                hasSwiped = true
+                                onSwipeUp()
+                            } else if (offsetY.value > 400 && !hasSwiped) { // Swipe Down (Delete)
+                                hasSwiped = true
+                                onSwipeDown()
                             }
                         }
                     }
-                ) { change, dragAmount ->
-                    change.consume()
-                    scope.launch {
-                        offsetY.snapTo(offsetY.value + dragAmount.y)
-                        if (offsetY.value < -400 && !hasSwiped) { // Swipe Up (Keep)
-                            hasSwiped = true
-                            onSwipeUp()
-                        } else if (offsetY.value > 400 && !hasSwiped) { // Swipe Down (Delete)
-                            hasSwiped = true
-                            onSwipeDown()
-                        }
-                    }
-                }
-            }
+                },
     ) {
         AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(photo.uri)
-                .crossfade(true)
-                .build(),
+            model =
+                ImageRequest.Builder(LocalContext.current)
+                    .data(photo.uri)
+                    .crossfade(true)
+                    .build(),
             contentDescription = "Full screen photo",
             contentScale = ContentScale.Fit,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
         )
     }
 }

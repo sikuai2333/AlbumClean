@@ -25,7 +25,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -37,70 +36,71 @@ import kotlin.math.roundToInt
 @Composable
 fun MyScreen(
     navController: NavController,
-    viewModel: MyViewModel = hiltViewModel()
+    viewModel: MyViewModel = hiltViewModel(),
 ) {
     val settingsState by viewModel.settingsState.collectAsState()
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("我的") }) }
+        topBar = { TopAppBar(title = { Text("我的") }) },
     ) { padding ->
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 16.dp)
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(horizontal = 16.dp),
         ) {
-            item { UserProfilePlaceholder() }
+            item { userProfilePlaceholder() }
             item { Spacer(modifier = Modifier.height(16.dp)) }
 
             // --- Appearance Settings ---
-            item { SectionTitle("外观") }
+            item { sectionTitle("外观") }
             item {
-                SettingsSwitchItem(
+                settingsSwitchItem(
                     title = "深色模式",
                     checked = settingsState.isDarkMode,
-                    onCheckedChange = viewModel::setDarkMode
+                    onCheckedChange = viewModel::setDarkMode,
                 )
             }
             item {
-                SettingsSwitchItem(
+                settingsSwitchItem(
                     title = "动态主题色",
                     subtitle = "跟随系统壁纸颜色 (Android 12+)",
                     checked = settingsState.useDynamicColor,
-                    onCheckedChange = viewModel::setDynamicColor
+                    onCheckedChange = viewModel::setDynamicColor,
                 )
             }
 
             // --- Grouping Settings ---
-            item { SectionTitle("整理") }
+            item { sectionTitle("整理") }
             item {
-                SettingsSliderItem(
+                settingsSliderItem(
                     title = "单组数量",
                     value = settingsState.groupSize,
-                    onValueChange = { viewModel.setGroupSize(it.roundToInt()) }
+                    onValueChange = { viewModel.setGroupSize(it.roundToInt()) },
                 )
             }
 
             // --- Other ---
-            item { SectionTitle("其他") }
-            item { SettingsClickableItem(title = "关于") { /* TODO */ } }
-            item { SettingsClickableItem(title = "隐私政策") { /* TODO */ } }
-            item { SettingsClickableItem(title = "SSO 登录") { /* TODO */ } }
+            item { sectionTitle("其他") }
+            item { settingsClickableItem(title = "关于") { /* TODO */ } }
+            item { settingsClickableItem(title = "隐私政策") { /* TODO */ } }
+            item { settingsClickableItem(title = "SSO 登录") { /* TODO */ } }
         }
     }
 }
 
 @Composable
-private fun UserProfilePlaceholder() {
+private fun userProfilePlaceholder() {
     Card(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
                 imageVector = Icons.Default.AccountCircle,
                 contentDescription = "User Avatar",
-                modifier = Modifier.height(48.dp).width(48.dp)
+                modifier = Modifier.height(48.dp).width(48.dp),
             )
             Spacer(modifier = Modifier.width(16.dp))
             Column {
@@ -112,26 +112,27 @@ private fun UserProfilePlaceholder() {
 }
 
 @Composable
-private fun SectionTitle(title: String) {
+private fun sectionTitle(title: String) {
     Text(
         text = title,
         style = MaterialTheme.typography.titleSmall,
-        modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
+        modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
     )
 }
 
 @Composable
-private fun SettingsSwitchItem(
+private fun settingsSwitchItem(
     title: String,
     subtitle: String? = null,
     checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
+    onCheckedChange: (Boolean) -> Unit,
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(title, style = MaterialTheme.typography.bodyLarge)
@@ -142,10 +143,10 @@ private fun SettingsSwitchItem(
 }
 
 @Composable
-private fun SettingsSliderItem(
+private fun settingsSliderItem(
     title: String,
     value: Int,
-    onValueChange: (Float) -> Unit
+    onValueChange: (Float) -> Unit,
 ) {
     Column(modifier = Modifier.padding(vertical = 8.dp)) {
         Row {
@@ -157,22 +158,23 @@ private fun SettingsSliderItem(
             value = value.toFloat(),
             onValueChange = onValueChange,
             valueRange = 5f..50f,
-            steps = 8 // (50-5)/5 = 9 steps
+            steps = 8, // (50-5)/5 = 9 steps
         )
     }
 }
 
 @Composable
-private fun SettingsClickableItem(
+private fun settingsClickableItem(
     title: String,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(vertical = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onClick)
+                .padding(vertical = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(title, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
         Icon(imageVector = Icons.Default.ArrowForwardIos, contentDescription = null)

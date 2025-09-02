@@ -39,21 +39,22 @@ import com.sikuai.album.ui.navigation.Routes
 @Composable
 fun ConfirmScreen(
     navController: NavController,
-    viewModel: ConfirmViewModel = hiltViewModel()
+    viewModel: ConfirmViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("确认操作") }) }
+        topBar = { TopAppBar(title = { Text("确认操作") }) },
     ) { padding ->
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(padding),
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
-                PhotoRowSection(title = "保留", photos = uiState.keptPhotos)
-                PhotoRowSection(title = "删除", photos = uiState.deletedPhotos)
+                photoRowSection(title = "保留", photos = uiState.keptPhotos)
+                photoRowSection(title = "删除", photos = uiState.deletedPhotos)
 
                 Button(
                     onClick = {
@@ -62,13 +63,15 @@ fun ConfirmScreen(
                             navController.popBackStack(Routes.HOME, inclusive = false)
                         }
                     },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error,
-                        contentColor = MaterialTheme.colorScheme.onError
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
+                    colors =
+                        ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.error,
+                            contentColor = MaterialTheme.colorScheme.onError,
+                        ),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
                 ) {
                     Text("确认删除 ${uiState.deletedPhotos.size} 张照片/视频")
                 }
@@ -82,29 +85,34 @@ fun ConfirmScreen(
 }
 
 @Composable
-private fun PhotoRowSection(title: String, photos: List<PhotoEntity>) {
+private fun photoRowSection(
+    title: String,
+    photos: List<PhotoEntity>,
+) {
     Column(modifier = Modifier.padding(vertical = 8.dp)) {
         Text(
             text = title,
             style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(horizontal = 16.dp)
+            modifier = Modifier.padding(horizontal = 16.dp),
         )
         LazyRow(
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             items(photos, key = { it.uri }) { photo ->
                 AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(photo.uri)
-                        .crossfade(true)
-                        .build(),
+                    model =
+                        ImageRequest.Builder(LocalContext.current)
+                            .data(photo.uri)
+                            .crossfade(true)
+                            .build(),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .height(120.dp)
-                        .width(90.dp)
-                        .clip(MaterialTheme.shapes.small)
+                    modifier =
+                        Modifier
+                            .height(120.dp)
+                            .width(90.dp)
+                            .clip(MaterialTheme.shapes.small),
                 )
             }
         }

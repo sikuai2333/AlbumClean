@@ -42,15 +42,16 @@ import com.google.accompanist.permissions.rememberMultiplePermissionsState
 @Composable
 fun HomeScreen(
     navController: NavController,
-    viewModel: HomeViewModel = hiltViewModel()
+    viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        listOf(Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO)
-    } else {
-        listOf(Manifest.permission.READ_EXTERNAL_STORAGE)
-    }
+    val permissions =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            listOf(Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO)
+        } else {
+            listOf(Manifest.permission.READ_EXTERNAL_STORAGE)
+        }
     val permissionState = rememberMultiplePermissionsState(permissions = permissions)
 
     LaunchedEffect(permissionState.allPermissionsGranted) {
@@ -67,13 +68,14 @@ fun HomeScreen(
                     Icon(Icons.Default.PlayArrow, contentDescription = "开始第一组")
                 }
             }
-        }
+        },
     ) { padding ->
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-            contentAlignment = Alignment.Center
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+            contentAlignment = Alignment.Center,
         ) {
             if (permissionState.allPermissionsGranted) {
                 if (uiState.isLoading) {
@@ -86,17 +88,18 @@ fun HomeScreen(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(4.dp),
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        verticalItemSpacing = 4.dp
+                        verticalItemSpacing = 4.dp,
                     ) {
                         items(uiState.photos, key = { it.uri }) { photo ->
                             AsyncImage(
-                                model = ImageRequest.Builder(LocalContext.current)
-                                    .data(photo.uri)
-                                    .crossfade(true)
-                                    .build(),
+                                model =
+                                    ImageRequest.Builder(LocalContext.current)
+                                        .data(photo.uri)
+                                        .crossfade(true)
+                                        .build(),
                                 contentDescription = null,
                                 contentScale = ContentScale.Crop,
-                                modifier = Modifier.clip(MaterialTheme.shapes.small)
+                                modifier = Modifier.clip(MaterialTheme.shapes.small),
                             )
                         }
                     }

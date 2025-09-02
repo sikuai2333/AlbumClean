@@ -19,45 +19,46 @@ import javax.inject.Inject
 data class ConfirmUiState(
     val keptPhotos: List<PhotoEntity> = emptyList(),
     val deletedPhotos: List<PhotoEntity> = emptyList(),
-    val isDeleting: Boolean = false
+    val isDeleting: Boolean = false,
 )
 
 @HiltViewModel
-class ConfirmViewModel @Inject constructor(
-    @ApplicationContext private val context: Context
-) : ViewModel() {
+class ConfirmViewModel
+    @Inject
+    constructor(
+        @ApplicationContext private val context: Context,
+    ) : ViewModel() {
+        private val _uiState = MutableStateFlow(ConfirmUiState())
+        val uiState = _uiState.asStateFlow()
 
-    private val _uiState = MutableStateFlow(ConfirmUiState())
-    val uiState = _uiState.asStateFlow()
-
-    init {
-        _uiState.update {
-            it.copy(
-                keptPhotos = TmpDataHolder.keptPhotos,
-                deletedPhotos = TmpDataHolder.deletedPhotos
-            )
+        init {
+            _uiState.update {
+                it.copy(
+                    keptPhotos = TmpDataHolder.keptPhotos,
+                    deletedPhotos = TmpDataHolder.deletedPhotos,
+                )
+            }
         }
-    }
 
-    fun confirmDeletion(onDeletionComplete: () -> Unit) {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isDeleting = true) }
-            withContext(Dispatchers.IO) {
-                try {
-                    val urisToDelete = _uiState.value.deletedPhotos.map { Uri.parse(it.uri) }
-                    urisToDelete.forEach { uri ->
-                        context.contentResolver.delete(uri, null, null)
-                    }
-                } finally {
-                    // This should run on the main thread if it updates UI state that triggers navigation
-                    withContext(Dispatchers.Main) {
-                        _uiState.update { it.copy(isDeleting = false) }
-                        TmpDataHolder.keptPhotos = emptyList()
-                        TmpDataHolder.deletedPhotos = emptyList()
-                        onDeletionComplete()
+        fun confirmDeletion(onDeletionComplete: () -> Unit) {
+            viewModelScope.launch {
+                _uiState.update { it.copy(isDeleting = true) }
+                withContext(Dispatchers.IO) {
+                    try {
+                        val urisToDelete = _uiState.value.deletedPhotos.map { Uri.parse(it.uri) }
+                        urisToDelete.forEach { uri ->
+                            context.contentResolver.delete(uri, null, null)
+                        }
+                    } finally {
+                        // This should run on the main thread if it updates UI state that triggers navigation
+                        withContext(Dispatchers.Main) {
+                            _uiState.update { it.copy(isDeleting = false) }
+                            TmpDataHolder.keptPhotos = emptyList()
+                            TmpDataHolder.deletedPhotos = emptyList()
+                            onDeletionComplete()
+                        }
                     }
                 }
             }
         }
     }
-}
