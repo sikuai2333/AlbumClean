@@ -11,5 +11,6 @@ data class PhotoEntity(
     val path: String,
     val dateAdded: Long,
     val size: Long,
-    val mimeType: String // e.g., "image/jpeg", "video/mp4"
+    // e.g., "image/jpeg", "video/mp4"
+    val mimeType: String,
 )
