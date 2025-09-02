@@ -8,12 +8,12 @@ plugins {
 
 android {
     namespace = "com.sikuai.album"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.sikuai.album"
         minSdk = 26
-        targetSdk = 34
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
