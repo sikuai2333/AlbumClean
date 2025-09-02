@@ -1,15 +1,64 @@
+# Created by Jules for the Album Management project
+
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# Android Studio
+.idea/
 *.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
+*.hprof
+*.pyc
+*.orig
+*.nav_editor_asset_files
+captures/
+.externalNativeBuild/
 local.properties
+
+# Keystore
+*.jks
+*.keystore
+
+# APKs
+*.apk
+*.aab
+*.ap_
+
+# Google Services
+google-services.json
+
+# Proguard
+proguard/
+*.map
+
+# Lint
+lint/
+
+# Kotlin
+*.kapt_scraps/
+kapt_build_cache/
+build/tmp/
+
+# Log files
+*.log
+
+# OS-specific
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+# Windows
+Thumbs.db
+ehthumbs.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+# Linux
+*~
+# Other
+.svn/
+.hg/
+.git/
+.vscode/
