@@ -38,6 +38,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.sikuai.album.ui.navigation.Routes
 
 @OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -65,7 +66,7 @@ fun HomeScreen(
         topBar = { TopAppBar(title = { Text("相册管理") }) },
         floatingActionButton = {
             if (uiState.photos.isNotEmpty()) {
-                FloatingActionButton(onClick = { /* TODO: Navigate to preview */ }) {
+                FloatingActionButton(onClick = { navController.navigate(Routes.PREVIEW) }) {
                     Icon(Icons.Default.PlayArrow, contentDescription = "开始第一组")
                 }
             }
