@@ -4,11 +4,15 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -24,6 +28,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
@@ -31,7 +36,6 @@ import coil.request.ImageRequest
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.sikuai.album.data.local.PhotoEntity
 import com.sikuai.album.ui.navigation.Routes
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -50,36 +54,55 @@ fun PreviewScreen(
     }
 
     val uiState by viewModel.uiState.collectAsState()
-    val pagerState = rememberPagerState(pageCount = { uiState.currentGroup.size })
 
-    LaunchedEffect(Unit) {
-        viewModel.navigationEvent.collectLatest {
+    LaunchedEffect(uiState.isGroupComplete) {
+        if (uiState.isGroupComplete) {
+            viewModel.prepareForConfirmation()
             navController.navigate(Routes.CONFIRM) {
-                // 清除预览页面，防止返回
                 popUpTo(Routes.PREVIEW) { inclusive = true }
             }
         }
     }
 
-    if (uiState.currentGroup.isEmpty()) {
-        // Handle empty state or loading
+    if (uiState.isGroupComplete) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            // Potentially a loading indicator or a message
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                CircularProgressIndicator()
+                Text("处理完成...")
+            }
         }
-        return
-    }
+    } else {
+        if (uiState.currentGroup.isEmpty()) {
+            // Handle empty state or loading
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                if (uiState.isLoading) {
+                    CircularProgressIndicator()
+                } else {
+                    Text("没有需要处理的照片。")
+                }
+            }
+            return
+        }
 
-    HorizontalPager(
-        state = pagerState,
-        modifier = Modifier.fillMaxSize(),
-    ) { pageIndex ->
-        val photo = uiState.currentGroup[pageIndex]
-        if (photo.uri !in uiState.processedPhotos) {
-            SwipablePhoto(
-                photo = photo,
-                onSwipeUp = { viewModel.onPhotoKept(photo) },
-                onSwipeDown = { viewModel.onPhotoDeleted(photo) },
-            )
+        val pagerState = rememberPagerState(pageCount = { uiState.currentGroup.size })
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxSize(),
+        ) { pageIndex ->
+            val photo = uiState.currentGroup[pageIndex]
+            // We still render the item box to occupy space, preventing the pager from collapsing
+            Box(Modifier.fillMaxSize()) {
+                if (photo.uri !in uiState.processedPhotos) {
+                    SwipablePhoto(
+                        photo = photo,
+                        onSwipeUp = { viewModel.onPhotoKept(photo) },
+                        onSwipeDown = { viewModel.onPhotoDeleted(photo) },
+                    )
+                }
+            }
         }
     }
 }
