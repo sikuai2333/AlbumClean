@@ -1,6 +1,7 @@
 package com.sikuai.album.ui.guide
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -84,6 +85,7 @@ fun GuideScreen(
                         Modifier
                             .padding(4.dp)
                             .clip(CircleShape)
+                            .background(color)
                             .size(12.dp),
                 )
             }
