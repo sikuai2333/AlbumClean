@@ -84,7 +84,6 @@ fun GuideScreen(
                         Modifier
                             .padding(4.dp)
                             .clip(CircleShape)
-                            .background(color)
                             .size(12.dp),
                 )
             }
