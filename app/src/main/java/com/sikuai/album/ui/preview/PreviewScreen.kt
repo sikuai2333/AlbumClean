@@ -11,6 +11,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -29,6 +30,8 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.sikuai.album.data.local.PhotoEntity
+import com.sikuai.album.ui.navigation.Routes
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -48,6 +51,15 @@ fun PreviewScreen(
 
     val uiState by viewModel.uiState.collectAsState()
     val pagerState = rememberPagerState(pageCount = { uiState.currentGroup.size })
+
+    LaunchedEffect(Unit) {
+        viewModel.navigationEvent.collectLatest {
+            navController.navigate(Routes.CONFIRM) {
+                // 清除预览页面，防止返回
+                popUpTo(Routes.PREVIEW) { inclusive = true }
+            }
+        }
+    }
 
     if (uiState.currentGroup.isEmpty()) {
         // Handle empty state or loading
