@@ -5,10 +5,13 @@ import androidx.lifecycle.viewModelScope
 import com.sikuai.album.data.local.PhotoEntity
 import com.sikuai.album.data.repo.PhotoRepository
 import com.sikuai.album.domain.usecase.GroupPhotosUseCase
+import com.sikuai.album.util.TmpDataHolder
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -24,52 +27,69 @@ data class PreviewUiState(
 
 @HiltViewModel
 class PreviewViewModel
-    @Inject
-    constructor(
-        private val photoRepository: PhotoRepository,
-        private val groupPhotosUseCase: GroupPhotosUseCase,
-    ) : ViewModel() {
-        private val _uiState = MutableStateFlow(PreviewUiState())
-        val uiState = _uiState.asStateFlow()
+@Inject
+constructor(
+    private val photoRepository: PhotoRepository,
+    private val groupPhotosUseCase: GroupPhotosUseCase,
+) : ViewModel() {
+    private val _uiState = MutableStateFlow(PreviewUiState())
+    val uiState = _uiState.asStateFlow()
 
-        init {
-            loadNextGroup()
-        }
+    private val _navigationEvent = Channel<Unit>()
+    val navigationEvent = _navigationEvent.receiveAsFlow()
 
-        private fun loadNextGroup() {
-            viewModelScope.launch {
-                _uiState.update { it.copy(isLoading = true) }
-                // In a real app, this would come from DataStore
-                val groupSize = 10
-                // This logic is simplified: it gets all photos and processes the first group.
-                // A real app would need to track processed photos and fetch the next unprocessed group.
-                val allPhotos = photoRepository.getAllPhotos().first()
-                val groups = groupPhotosUseCase(allPhotos, groupSize)
+    init {
+        loadNextGroup()
+    }
 
-                if (groups.isNotEmpty()) {
-                    _uiState.update {
-                        it.copy(
-                            currentGroup = groups.first(),
-                            isLoading = false,
-                            keptPhotos = emptySet(),
-                            deletedPhotos = emptySet(),
-                        )
-                    }
-                } else {
-                    _uiState.update { it.copy(isLoading = false, currentGroup = emptyList()) }
+    private fun loadNextGroup() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            // In a real app, this would come from DataStore
+            val groupSize = 10
+            // This logic is simplified: it gets all photos and processes the first group.
+            // A real app would need to track processed photos and fetch the next unprocessed group.
+            val allPhotos = photoRepository.getAllPhotos().first()
+            val groups = groupPhotosUseCase(allPhotos, groupSize)
+
+            if (groups.isNotEmpty()) {
+                _uiState.update {
+                    it.copy(
+                        currentGroup = groups.first(),
+                        isLoading = false,
+                        keptPhotos = emptySet(),
+                        deletedPhotos = emptySet(),
+                    )
                 }
-            }
-        }
-
-        fun onPhotoKept(photo: PhotoEntity) {
-            _uiState.update {
-                it.copy(keptPhotos = it.keptPhotos + photo.uri)
-            }
-        }
-
-        fun onPhotoDeleted(photo: PhotoEntity) {
-            _uiState.update {
-                it.copy(deletedPhotos = it.deletedPhotos + photo.uri)
+            } else {
+                _uiState.update { it.copy(isLoading = false, currentGroup = emptyList()) }
             }
         }
     }
+
+    fun onPhotoKept(photo: PhotoEntity) {
+        _uiState.update {
+            it.copy(keptPhotos = it.keptPhotos + photo.uri)
+        }
+        checkCompletion()
+    }
+
+    fun onPhotoDeleted(photo: PhotoEntity) {
+        _uiState.update {
+            it.copy(deletedPhotos = it.deletedPhotos + photo.uri)
+        }
+        checkCompletion()
+    }
+
+    private fun checkCompletion() {
+        val currentState = _uiState.value
+        if (currentState.processedPhotos.size == currentState.currentGroup.size && currentState.currentGroup.isNotEmpty()) {
+            val (kept, deleted) = currentState.currentGroup.partition { it.uri in currentState.keptPhotos }
+            TmpDataHolder.keptPhotos = kept
+            TmpDataHolder.deletedPhotos = deleted
+            viewModelScope.launch {
+                _navigationEvent.send(Unit)
+            }
+        }
+    }
+}
